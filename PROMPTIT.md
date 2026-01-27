@@ -690,3 +690,84 @@ describe('Reservations API', () => {
 ---
 
 Haluatko että lisään testitiedoston ja päivitän package.json puolestasi nyt (teen commitin tarvittaessa)? ✨
+
+### 🧑 Minä:
+
+Sain testit menemään läpi, mutta nyt kun vaihdoin käyttämään ESM-moduulia projektissa, Jest testit eivät enään toimi. Tulee virhe "Cannot find module '../app.js'". Import poluissa on nuo .js päätteet koska Node.js vaatii ne, mutta Jest ei näytä löytävän tiedostoja. Miten saan Jestin ja TypeScriptin toimimaan tässä uudessa konfiguraatiossa?
+
+### 🤖 Tekoäly (Copilot):
+
+Hyvä huomio — Jestin ESM-tuki vaatii muutaman konfiguraatiomuutoksen TypeScriptin kanssa. Kerron selkeät muutokset, jotta testit löytävät `../app.js`-tyyppiset importit ja ts-jest ajaa ESM-tilassa ✅
+
+## Yhteenveto ratkaisuista 🔧
+- Käytä CommonJS-muotoista Jest-konfiguraatiota (esim. `jest.config.cjs`) ja **ts-jest/presets/default-esm** -presettiä.
+- Kerro Jestille, että treataa `.ts` tiedostot ESM:ksi ja että ts-jest käyttää ESM-tilaa.
+- Lisää **moduleNameMapper**, joka muuntaa testien `.js`-päätteiset paikalliset importit TypeScript-polkuiksi (esim. `../app.js` → `../app`).
+- Aseta tsconfig.json käyttämään NodeNext-moduuliresolutiota.
+
+---
+
+## Konkreettiset muutokset (kopioi/paste)
+
+1) **Luo `jest.config.cjs` juureen:**
+```js
+module.exports = {
+  preset: 'ts-jest/presets/default-esm',
+  testEnvironment: 'node',
+  extensionsToTreatAsEsm: ['.ts'],
+  transform: {
+    '^.+\\.ts$': ['ts-jest', { useESM: true }]
+  },
+  moduleNameMapper: {
+    // map local imports ending with .js to same path without extension so Jest/ts-jest löytää .ts
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  },
+  testMatch: ['**/tests/**/*.test.ts']
+};
+```
+
+2) **Päivitä tsconfig.json (oleelliset kohdat):**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "jest"]
+  }
+}
+```
+
+3) **package.json**
+- Varmista että `"type": "module"` on päällä (ESM-projekti).
+- Lisää dev-riippuvuuksiin ja skripteihin:
+```json
+"scripts": {
+  "test": "jest"
+},
+"devDependencies": {
+  "jest": "^29.x",
+  "ts-jest": "^29.x",
+  "@types/jest": "^29.x"
+}
+```
+
+4) **Testit**  
+- PIDÄ testien importit ESM-tyylisinä (esim. `import app from '../app.js'`) — yllä oleva `moduleNameMapper` hoitaa, että Jest löytää vastaavan `.ts`-tiedoston.
+
+5) **Jos käytät Node < 18**  
+- Joillain Node-versioilla tarvitset ympäristömuuttujan:  
+  NODE_OPTIONS=--experimental-vm-modules npm test
+
+---
+
+## Miksi tämä toimii? 💡
+- `ts-jest/presets/default-esm` + `useESM: true` antaa ts-jestille ESM-kyvyt.
+- `extensionsToTreatAsEsm: ['.ts']` kertoo Jestille että testit ovat ESM.
+- `moduleNameMapper` korjaa ongelman, jossa testikoodi importtaa `../app.js` (pakollinen Node ESM -tyyli) mutta lähdetiedosto on TypeScript (app.ts).
+
+---
+
+Haluatko, että lisään nämä konfiguroinnit ja päivitän package.json & testitiedoston puolestasi (teen commitin)? ✅

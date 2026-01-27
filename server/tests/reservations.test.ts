@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../app.js";
-import { reservations } from "../store/inMemoryDB";
+import { reservations } from "../store/inMemoryDB.js";
 
 beforeEach(() => {
     reservations.length = 0;

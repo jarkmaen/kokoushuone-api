@@ -15,20 +15,13 @@
         "tsx": "^4.21.0",
         "typescript": "^5.1.6"
     },
-    "jest": {
-        "preset": "ts-jest",
-        "testEnvironment": "node",
-        "testMatch": [
-            "**/tests/**/*.test.ts"
-        ]
-    },
     "main": "dist/index.js",
     "name": "kokoushuone-api",
     "scripts": {
         "build": "tsc",
         "dev": "tsx --watch index.ts",
         "start": "node dist/index.js",
-        "test": "jest"
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "type": "module",
     "version": "1.0.0"

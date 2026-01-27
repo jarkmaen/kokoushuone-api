@@ -1,13 +1,13 @@
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
-import { reservations } from "../store/inMemoryDB";
-import { Reservation, Room } from "../models/reservation";
+import { reservations } from "../store/inMemoryDB.js";
+import { Reservation, Room } from "../models/reservation.js";
 import {
     parseISO,
     isQuarterHour,
     minutesBetween,
     inOfficeHours
-} from "../utils/time";
+} from "../utils/time.js";
 
 const router = express.Router();
 const ROOMS: Room[] = ["A1", "A2", "B1", "B2"];

@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 const ROOMS: Room[] = ["A1", "A2", "B1", "B2"];
 
-router.post("/reservations", (req, res) => {
+router.post("/", (req, res) => {
     const { room, start, end, name } = req.body as {
         room: string;
         start: string;
@@ -76,7 +76,7 @@ router.post("/reservations", (req, res) => {
     return res.status(201).json(resv);
 });
 
-router.delete("/reservations/:id", (req, res) => {
+router.delete("/:id", (req, res) => {
     const id = req.params.id;
     const idx = reservations.findIndex((r) => r.id === id);
     if (idx === -1) return res.status(404).json({ error: "not found" });
@@ -84,7 +84,7 @@ router.delete("/reservations/:id", (req, res) => {
     return res.status(204).send();
 });
 
-router.get("/rooms/:room/reservations", (req, res) => {
+router.get("/rooms/:room", (req, res) => {
     const room = req.params.room as Room;
     if (!ROOMS.includes(room))
         return res.status(400).json({ error: "invalid room" });

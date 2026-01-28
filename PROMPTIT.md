@@ -1188,3 +1188,155 @@ Read [](file:///c%3A/Users/Jarkko/Documents/GitHub/kokoushuone-api/server/reques
 Ehdotan seuraavia muutoksia ja voin lisätä ne suoraan työtilaan — hyväksytkö, että teen commitin nyt?  
 
 Muuten laadin tarkat patch-diffit (voit liittää itse). Vastaa "Kyllä, tee se" tai "Haluan patchin". ✅
+
+### 🧑 Minä:
+
+Refaktoroidaan reservations.ts. Datan validointi tulisi eritellä. Tee uusi tiedosto middleware kansioon mikä hoitaa tämän validoinnin. Nämä asiat tulisi tarkistaa:
+
+1. Sisältääkö body oikeanlaista dataa?
+2. Varmistetaan, että data ei sisällä tyhjiä merkkijonoja
+3. Tarkistetaan, että valittu huone on järjestelmässä
+4. Onko käytetty oikeaa aikamuotoa?
+5. Varmistetaan, että käyvätkö valitut ajat järkeen
+6. Päteekö 15 minuutin intervallisääntö?
+7. Tarkistetaan, että varauksen kesto ei ole liian lyhyt tai pitkä (15min - 8h)
+8. Onko varaus tehty aukioloaikojen puitteissa?
+9. Varmistetaan, että onko huone vapaa valittuna aikana
+
+Jotta 9 kohta voidaan tehdä järkevästi, lisää isRoomAvailable metodi inMemoryDB.ts tiedostoon. Näytä tässä chatissä ehdottamasi lisäykset/muutokset.
+
+### 🤖 Tekoäly (Copilot):
+
+Löysin, että validaatiologiikka on tällä hetkellä upotettuna reitille — erotetaan se selkeäksi middlewareksi ja lisätään tietokantaan tehokas varauksen saatavuustarkistus. Teen ehdotuksen, joka vähentää duplikaatiota ja parantaa testattavuutta: uusi middleware hoitaa kaikki 9 tarkistusta ja `db` tarjoaa `isRoomAvailable()`-metodin. ✅
+
+---
+
+## Muutokset — tiivistelmä 🔧
+- Lisätään uusi middleware-tiedosto: `server/middleware/validateReservation.ts`
+- Lisätään `isRoomAvailable()`-metodi inMemoryDB.ts
+- Päivitetään reservations.ts käyttämään middlewarea ja `db`-metodia (poistetaan reitin sisäinen validaatio)
+
+---
+
+## 1) Lisää `isRoomAvailable` inMemoryDB.ts ✨
+Lisää tähän tiedostoon seuraava metodi (sijoita metodin paikka samaan objektin määrittelyyn):
+
+```ts
+isRoomAvailable(room: Room, startISO: string, endISO: string, excludeId?: string): boolean {
+    const s = new Date(startISO).getTime();
+    const e = new Date(endISO).getTime();
+    return !data.some((r) => 
+        r.room === room &&
+        r.id !== excludeId &&
+        new Date(r.start).getTime() < e &&
+        new Date(r.end).getTime() > s
+    );
+}
+```
+
+- Palauttaa `true` jos huone on vapaa annetulla aikavälillä (otettu huomioon mahdollinen `excludeId`).
+
+---
+
+## 2) Uusi middleware `server/middleware/validateReservation.ts` ✅
+Luo uusi tiedosto ja lisää seuraava sisältö:
+
+```ts
+import { Request, Response, NextFunction } from "express";
+import db from "../database/inMemoryDB.js";
+import { parseISO, isQuarterHour, minutesBetween, inOfficeHours } from "../utils/time.js";
+
+export function validateReservation(req: Request, res: Response, next: NextFunction) {
+    const { room, start, end, name } = req.body as { room?: string; start?: string; end?: string; name?: string };
+
+    // 1 & 2. Peruspresence ja tyhjät merkkijonot
+    if (!room || !start || !end || !name)
+        return res.status(400).json({ error: "room, start, end and name are required" });
+    if (typeof room !== "string" || typeof start !== "string" || typeof end !== "string" || typeof name !== "string")
+        return res.status(400).json({ error: "invalid types" });
+    if (room.trim() === "" || start.trim() === "" || end.trim() === "" || name.trim() === "")
+        return res.status(400).json({ error: "fields must not be empty" });
+
+    // 3. Huoneen olemassaolo
+    if (!db.getRooms().includes(room as any)) return res.status(400).json({ error: "invalid room" });
+
+    // 4. Aikamuoto (ISO)
+    const s = parseISO(start);
+    const e = parseISO(end);
+    if (!s || !e) return res.status(400).json({ error: "invalid date format, use ISO 8601 UTC" });
+
+    const now = new Date();
+    // 5. Ajat järkeen
+    if (s.getTime() < now.getTime()) return res.status(400).json({ error: "start cannot be in the past" });
+    if (s.getTime() >= e.getTime()) return res.status(400).json({ error: "start must be before end" });
+
+    // 6. 15-min intervalli
+    if (!isQuarterHour(s) || !isQuarterHour(e)) return res.status(400).json({ error: "start and end must be on 15-min boundaries" });
+
+    // 7. Kesto min/max
+    const minutes = minutesBetween(s, e);
+    if (minutes < 15) return res.status(400).json({ error: "minimum duration is 15 minutes" });
+    if (minutes > 8 * 60) return res.status(400).json({ error: "maximum duration is 8 hours" });
+
+    // 8. Aukioloajat
+    if (!inOfficeHours(s, e)) return res.status(400).json({ error: "reservations allowed only between 06:00 and 20:00 UTC and must be within same day" });
+
+    // 9. Saatavuus
+    if (!db.isRoomAvailable(room as any, s.toISOString(), e.toISOString())) return res.status(400).json({ error: "room not available for selected time" });
+
+    // Put clean values for the handler
+    (res.locals as any).reservation = {
+        room: room.trim(),
+        start: s.toISOString(),
+        end: e.toISOString(),
+        name: name.trim()
+    };
+
+    next();
+}
+```
+
+Huom: middleware sijoittaa puhdistetun payloadin `res.locals.reservation`-kenttään, jota reitti käyttää resurssin luontiin.
+
+---
+
+## 3) Päivitys reservations.ts 🛠️
+Korvaa reitin validointilohko middleware-kutsuksi ja käytä `res.locals`:
+
+- Lisää import:
+```ts
+import { validateReservation } from "../middleware/validateReservation.js";
+```
+
+- Muuta POST reitti (vain tärkeimmät kohdat näkyvät):
+```ts
+router.post("/", validateReservation, (req, res) => {
+    const { room, start, end, name } = (res.locals as any).reservation;
+    const resv: Reservation = {
+        id: uuidv4(),
+        room: room as Room,
+        start,
+        end,
+        name,
+        createdAt: new Date().toISOString()
+    };
+    db.addReservation(resv);
+    return res.status(201).json(resv);
+});
+```
+
+- Poista reitiltä kaikki aiemmat validaatiot ja overlap-tarkistus, koska middleware ja `db.isRoomAvailable()` hoitavat ne.
+
+---
+
+## Testit ja REST-client
+- Testeissä voit jatkaa käyttämällä julkista APIa; testejä ei tarvitse muuttaa logiikan vuoksi, mutta voit lisätä yksikkötestit middlewarelle myöhemmin.
+- Päivitä reservations.rest tarvittaessa (kenttien nimiä ei muutettu tässä vaiheessa).
+
+---
+
+## Seuraavat askeleet ✅
+1. Halutessasi teen nämä muutokset suoraan työtilaan ja teen commitin.  
+2. Voin myös lisätä yksikkötestit middlewarelle ja uuden testin `isRoomAvailable()`-metodille.
+
+Haluatko että lisään ja committaan nämä muutokset nyt? ✨

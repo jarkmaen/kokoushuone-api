@@ -3,7 +3,7 @@ import { Reservation, Room } from "../models/reservation.js";
 const data: Reservation[] = [];
 const ROOMS: Room[] = ["A1", "A2", "B1", "B2"];
 
-const db = {
+export const db = {
     addReservation(reservation: Reservation): void {
         data.push(reservation);
     },
@@ -28,13 +28,21 @@ const db = {
             .filter((r) => r.room === room)
             .sort(
                 (a, b) =>
-                    new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+                    new Date(a.startTime).getTime() -
+                    new Date(b.startTime).getTime()
             );
     },
 
     getRooms(): Room[] {
         return [...ROOMS];
+    },
+
+    isRoomAvailable(room: Room, start: Date, end: Date): boolean {
+        return !data.some(
+            (r) =>
+                r.room === room &&
+                new Date(r.startTime) < end &&
+                new Date(r.endTime) > start
+        );
     }
 };
-
-export default db;

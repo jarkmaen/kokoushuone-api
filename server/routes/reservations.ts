@@ -1,16 +1,15 @@
-import express from "express";
-import { v4 as uuidv4 } from "uuid";
-import { reservations } from "../store/inMemoryDB.js";
-import { Reservation, Room } from "../models/reservation.js";
+import db from "../database/inMemoryDB.js";
 import {
-    parseISO,
+    inOfficeHours,
     isQuarterHour,
     minutesBetween,
-    inOfficeHours
+    parseISO
 } from "../utils/time.js";
+import { Reservation, Room } from "../models/reservation.js";
+import { Router } from "express";
+import { v4 as uuidv4 } from "uuid";
 
-const router = express.Router();
-const ROOMS: Room[] = ["A1", "A2", "B1", "B2"];
+const router = Router();
 
 router.post("/", (req, res) => {
     const { room, start, end, name } = req.body as {
@@ -22,7 +21,7 @@ router.post("/", (req, res) => {
     if (!room || !start || !end || !name)
         return res.status(400).json({ error: "room,start,end,name required" });
 
-    if (!ROOMS.includes(room as Room))
+    if (!db.getRooms().includes(room as Room))
         return res.status(400).json({ error: "invalid room" });
 
     const s = parseISO(start);
@@ -54,13 +53,16 @@ router.post("/", (req, res) => {
             error: "reservations allowed only between 06:00 and 20:00 UTC and must be within same day"
         });
 
-    // Overlap check
-    const overlap = reservations.find(
-        (r) =>
-            r.room === room &&
-            new Date(r.start).getTime() < e.getTime() &&
-            new Date(r.end).getTime() > s.getTime()
-    );
+    // Overlap check (use room-specific reservations)
+    const overlap = db
+        .getAllReservations()
+        .find(
+            (r) =>
+                r.room === room &&
+                new Date(r.start).getTime() < e.getTime() &&
+                new Date(r.end).getTime() > s.getTime()
+        );
+
     if (overlap)
         return res.status(400).json({ error: "overlaps existing reservation" });
 
@@ -72,27 +74,22 @@ router.post("/", (req, res) => {
         name,
         createdAt: new Date().toISOString()
     };
-    reservations.push(resv);
+    db.addReservation(resv);
     return res.status(201).json(resv);
 });
 
 router.delete("/:id", (req, res) => {
     const id = req.params.id;
-    const idx = reservations.findIndex((r) => r.id === id);
-    if (idx === -1) return res.status(404).json({ error: "not found" });
-    reservations.splice(idx, 1);
+    const ok = db.deleteReservation(id);
+    if (!ok) return res.status(404).json({ error: "not found" });
     return res.status(204).send();
 });
 
 router.get("/rooms/:room", (req, res) => {
     const room = req.params.room as Room;
-    if (!ROOMS.includes(room))
+    if (!db.getRooms().includes(room))
         return res.status(400).json({ error: "invalid room" });
-    const list = reservations
-        .filter((r) => r.room === room)
-        .sort(
-            (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
-        );
+    const list = db.getReservationsByRoom(room);
     return res.json(list);
 });
 

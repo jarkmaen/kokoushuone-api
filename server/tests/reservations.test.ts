@@ -1,9 +1,9 @@
-import request from "supertest";
 import app from "../app.js";
-import { reservations } from "../store/inMemoryDB.js";
+import db from "../database/inMemoryDB.js";
+import request from "supertest";
 
 beforeEach(() => {
-    reservations.length = 0;
+    db.clear();
 });
 
 describe("Reservations API", () => {
@@ -18,7 +18,7 @@ describe("Reservations API", () => {
         const res = await request(app).post("/api/reservations").send(valid);
         expect(res.status).toBe(201);
         expect(res.body.id).toBeDefined();
-        expect(reservations.length).toBe(1);
+        expect(db.getAllReservations().length).toBe(1);
     });
 
     test("prevents overlapping reservations", async () => {

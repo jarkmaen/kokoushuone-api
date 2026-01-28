@@ -4,9 +4,9 @@ Content-Type: application/json
 
 {
     "room": "A1",
-    "start": "2027-01-28T09:00:00Z",
-    "end": "2027-01-28T09:30:00Z",
-    "name": "Testikäyttäjä"
+    "startTime": "2027-01-28T09:00:00Z",
+    "endTime": "2027-01-28T09:30:00Z",
+    "reservedBy": "Testikäyttäjä"
 }
 
 ###
@@ -17,9 +17,9 @@ Content-Type: application/json
 
 {
     "room": "A1",
-    "start": "2027-01-28T09:15:00Z",
-    "end": "2027-01-28T09:45:00Z",
-    "name": "Päällekkäinen"
+    "startTime": "2027-01-28T09:15:00Z",
+    "endTime": "2027-01-28T09:45:00Z",
+    "reservedBy": "Päällekkäinen"
 }
 
 ###

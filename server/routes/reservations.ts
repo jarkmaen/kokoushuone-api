@@ -12,33 +12,33 @@ import { v4 as uuidv4 } from "uuid";
 const router = Router();
 
 router.post("/", (req, res) => {
-    const { room, start, end, name } = req.body as {
+    const { room, startTime, endTime, reservedBy } = req.body as {
         room: string;
-        start: string;
-        end: string;
-        name: string;
+        startTime: string;
+        endTime: string;
+        reservedBy: string;
     };
-    if (!room || !start || !end || !name)
-        return res.status(400).json({ error: "room,start,end,name required" });
+    if (!room || !startTime || !endTime || !reservedBy)
+        return res.status(400).json({ error: "room,startTime,endTime,reservedBy required" });
 
     if (!db.getRooms().includes(room as Room))
         return res.status(400).json({ error: "invalid room" });
 
-    const s = parseISO(start);
-    const e = parseISO(end);
+    const s = parseISO(startTime);
+    const e = parseISO(endTime);
     if (!s || !e)
         return res.status(400).json({ error: "invalid date format, use ISO" });
 
     const now = new Date();
     if (s.getTime() < now.getTime())
-        return res.status(400).json({ error: "start cannot be in the past" });
+        return res.status(400).json({ error: "startTime cannot be in the past" });
     if (s.getTime() >= e.getTime())
-        return res.status(400).json({ error: "start must be before end" });
+        return res.status(400).json({ error: "startTime must be before endTime" });
 
     if (!isQuarterHour(s) || !isQuarterHour(e))
         return res
             .status(400)
-            .json({ error: "start and end must be on 15-min boundaries" });
+            .json({ error: "startTime and endTime must be on 15-min boundaries" });
 
     const minutes = minutesBetween(s, e);
     if (minutes < 15)
@@ -59,8 +59,8 @@ router.post("/", (req, res) => {
         .find(
             (r) =>
                 r.room === room &&
-                new Date(r.start).getTime() < e.getTime() &&
-                new Date(r.end).getTime() > s.getTime()
+                new Date(r.startTime).getTime() < e.getTime() &&
+                new Date(r.endTime).getTime() > s.getTime()
         );
 
     if (overlap)
@@ -69,9 +69,9 @@ router.post("/", (req, res) => {
     const resv: Reservation = {
         id: uuidv4(),
         room: room as Room,
-        start: s.toISOString(),
-        end: e.toISOString(),
-        name,
+        startTime: s.toISOString(),
+        endTime: e.toISOString(),
+        reservedBy,
         createdAt: new Date().toISOString()
     };
     db.addReservation(resv);

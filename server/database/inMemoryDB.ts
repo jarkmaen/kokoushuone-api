@@ -28,7 +28,7 @@ const db = {
             .filter((r) => r.room === room)
             .sort(
                 (a, b) =>
-                    new Date(a.start).getTime() - new Date(b.start).getTime()
+                    new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
             );
     },
 

@@ -9,9 +9,9 @@ beforeEach(() => {
 describe("Reservations API", () => {
     const valid = {
         room: "A1",
-        start: "2030-01-01T09:00:00Z",
-        end: "2030-01-01T09:30:00Z",
-        name: "Tester"
+        startTime: "2030-01-01T09:00:00Z",
+        endTime: "2030-01-01T09:30:00Z",
+        reservedBy: "Tester"
     };
 
     test("creates a valid reservation", async () => {
@@ -25,9 +25,9 @@ describe("Reservations API", () => {
         await request(app).post("/api/reservations").send(valid);
         const res = await request(app).post("/api/reservations").send({
             room: "A1",
-            start: "2030-01-01T09:15:00Z",
-            end: "2030-01-01T09:45:00Z",
-            name: "Overlap"
+            startTime: "2030-01-01T09:15:00Z",
+            endTime: "2030-01-01T09:45:00Z",
+            reservedBy: "Overlap"
         });
         expect(res.status).toBe(400);
         expect(res.body.error).toMatch(/overlaps/);
@@ -36,19 +36,19 @@ describe("Reservations API", () => {
     test("rejects past reservations", async () => {
         const res = await request(app).post("/api/reservations").send({
             room: "A1",
-            start: "2020-01-01T09:00:00Z",
-            end: "2020-01-01T09:15:00Z",
-            name: "Past"
+            startTime: "2020-01-01T09:00:00Z",
+            endTime: "2020-01-01T09:15:00Z",
+            reservedBy: "Past"
         });
         expect(res.status).toBe(400);
     });
 
-    test("start must be before end", async () => {
+    test("startTime must be before endTime", async () => {
         const res = await request(app).post("/api/reservations").send({
             room: "A1",
-            start: "2030-01-01T10:00:00Z",
-            end: "2030-01-01T09:00:00Z",
-            name: "Bad"
+            startTime: "2030-01-01T10:00:00Z",
+            endTime: "2030-01-01T09:00:00Z",
+            reservedBy: "Bad"
         });
         expect(res.status).toBe(400);
     });
@@ -56,9 +56,9 @@ describe("Reservations API", () => {
     test("requires 15-min boundaries", async () => {
         const res = await request(app).post("/api/reservations").send({
             room: "A1",
-            start: "2030-01-01T09:05:00Z",
-            end: "2030-01-01T09:20:00Z",
-            name: "NotQuarter"
+            startTime: "2030-01-01T09:05:00Z",
+            endTime: "2030-01-01T09:20:00Z",
+            reservedBy: "NotQuarter"
         });
         expect(res.status).toBe(400);
     });
@@ -66,17 +66,17 @@ describe("Reservations API", () => {
     test("enforces min and max durations", async () => {
         const tooShort = await request(app).post("/api/reservations").send({
             room: "A1",
-            start: "2030-01-01T09:00:00Z",
-            end: "2030-01-01T09:10:00Z",
-            name: "Short"
+            startTime: "2030-01-01T09:00:00Z",
+            endTime: "2030-01-01T09:10:00Z",
+            reservedBy: "Short"
         });
         expect(tooShort.status).toBe(400);
 
         const tooLong = await request(app).post("/api/reservations").send({
             room: "A1",
-            start: "2030-01-01T06:00:00Z",
-            end: "2030-01-01T15:00:00Z", // 9 hours
-            name: "Long"
+            startTime: "2030-01-01T06:00:00Z",
+            endTime: "2030-01-01T15:00:00Z", // 9 hours
+            reservedBy: "Long"
         });
         expect(tooLong.status).toBe(400);
     });
@@ -84,17 +84,17 @@ describe("Reservations API", () => {
     test("enforces office hours and same day", async () => {
         const before = await request(app).post("/api/reservations").send({
             room: "A1",
-            start: "2030-01-01T05:00:00Z",
-            end: "2030-01-01T05:15:00Z",
-            name: "Before"
+            startTime: "2030-01-01T05:00:00Z",
+            endTime: "2030-01-01T05:15:00Z",
+            reservedBy: "Before"
         });
         expect(before.status).toBe(400);
 
         const crosses = await request(app).post("/api/reservations").send({
             room: "A1",
-            start: "2030-01-01T19:30:00Z",
-            end: "2030-01-02T00:00:00Z",
-            name: "CrossDay"
+            startTime: "2030-01-01T19:30:00Z",
+            endTime: "2030-01-02T00:00:00Z",
+            reservedBy: "CrossDay"
         });
         expect(crosses.status).toBe(400);
     });

@@ -1,6 +1,6 @@
 import app from "../app.js";
-import db from "../database/inMemoryDB.js";
 import request from "supertest";
+import { db } from "../database/inMemoryDB.js";
 
 beforeEach(() => {
     db.clear();
@@ -30,7 +30,7 @@ describe("Reservations API", () => {
             reservedBy: "Overlap"
         });
         expect(res.status).toBe(400);
-        expect(res.body.error).toMatch(/overlaps/);
+        expect(res.body.error).toMatch(/jo varattu/);
     });
 
     test("rejects past reservations", async () => {

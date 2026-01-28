@@ -1,18 +1,19 @@
 import cors from "cors";
 import express from "express";
 
-import * as middleware from "./utils/middleware.js";
 import reservationsRouter from "./routes/reservations.js";
+import { errorHandler, unknownEndpoint } from "./middlewares/errors.js";
+import { httpLogger } from "./middlewares/httpLogger.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(middleware.requestLogger);
+app.use(httpLogger);
 
 app.use("/api/reservations", reservationsRouter);
 
-app.use(middleware.unknownEndpoint);
-app.use(middleware.errorHandler);
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 export default app;

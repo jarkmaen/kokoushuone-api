@@ -1558,3 +1558,98 @@ Seuraavat askeleet ▶️
 2. Vastaa "Haluan patchin" ja lähetän täsmällisen diffin, jonka voit liittää manuaalisesti.
 
 Mikä valinta sopii?
+
+### 🧑 Minä:
+
+Haluan luoda testikattavuusraportin, mutta "jest --coverage" komento ei toimi.
+
+### 🤖 Tekoäly (Copilot):
+
+Status: Tarkistan nykyisen Jest-konfiguraation ja package.json:n, jotta näen miksi 'jest --coverage' epäonnistuu. Kerron löydökseni ja ehdotan korjaukset.
+
+Read [](file:///c%3A/Users/Jarkko/Documents/GitHub/kokoushuone-api/server/package.json)
+
+Searched for files matching `**/jest.config`, no matches
+
+Status: Tarkistin projektin Jest-skriptin ja konfiguraation tilanteen; näen, että käytössä on ESM + TypeScript eikä erillistä `jest.config.cjs` -konfiguraatiota vielä ole. Ehdotan selkeät muutokset, jotta `jest --coverage` toimisi turvallisesti ESM/ts-jest -käytössä. ✅
+
+---
+
+## Ongelman ydin 💡
+- Projekti on ESM (`"type": "module"`) ja käyttää TypeScriptiä + `ts-jest`.  
+- Jestin ESM-tila vaatii erillisen konfigin ja usein suorittuksen `node --experimental-vm-modules` (vanhemmissa Node-versioissa).  
+- Coverage tarvitsee toimivan Jest+ts-jest -konfiguraation (preset ESMille) ja usein `coverageProvider: 'v8'`.
+
+---
+
+## Korjausehdotus — mitä lisätään / muutetaan 🔧
+
+1) Lisää `jest.config.cjs` projektin server-kansioon (tai juureen, jos ajat testit sieltä):
+```js
+// server/jest.config.cjs
+module.exports = {
+  preset: 'ts-jest/presets/default-esm',
+  testEnvironment: 'node',
+  extensionsToTreatAsEsm: ['.ts'],
+  transform: {
+    '^.+\\.ts$': ['ts-jest', { useESM: true }]
+  },
+  moduleNameMapper: {
+    // Korjaa paikalliset .js-importit -> ts-tiedostot
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  },
+  testMatch: ['**/tests/**/*.test.ts'],
+  coverageProvider: 'v8',
+  collectCoverage: true,
+  collectCoverageFrom: ['**/server/**/*.ts', '!**/server/**/tests/**'],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov']
+};
+```
+
+2) Päivitä package.json -skripti (lisää erillinen skripti coveragelle):
+```json
+"scripts": {
+  "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+  "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+}
+```
+- Jos Node >= 18 käytössä, `--experimental-vm-modules` ei välttämättä tarvita, mutta se ei yleensä haittaa.
+
+3) Varmista tsconfig.json (palvelimen puolella) että on ESM-yhteensopiva:
+```json
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "sourceMap": true,
+    "inlineSources": true,
+    "types": ["node", "jest"]
+  }
+}
+```
+- `sourceMap` auttaa kattavuus- ja virheraportoinnissa (TypeScript -> JS mapping).
+
+4) Jos testit käyttävät importteja kuten `import app from '../app.js'`, pidä ne sellaisina — `moduleNameMapper` korjaa Jestin polkuja testausta varten.
+
+---
+
+## Miten ajaa coverage nyt ▶️
+- Asenna (jos ei vielä): cd server && npm install
+- Suorita: npm run test:cov
+- Raportit löytyvät `server/coverage` (lcov + tekstimuoto)
+
+---
+
+## Usein esiintyvät virheet ja niiden ratkaisut 🩺
+- "Cannot find module '../app.js'": lisää `moduleNameMapper` kuten yllä.  
+- "Coverage collection failed" tai puuttuvat reportit: lisää `coverageProvider: 'v8'`.  
+- Jos saat Node ESM-virheitä: käytä `node --experimental-vm-modules` skriptissä (tai päivitä Node uudempaan).
+
+---
+
+Jos haluat, voin:
+1) Lisätä `jest.config.cjs` ja päivittää package.json & tsconfig.json puolestasi ja tehdä commitin, tai  
+2) Lähettää valmiin patch-diffin, jonka voit liittää itse.
+
+Haluatko että lisään tiedostot ja päivitykset nyt? ✅

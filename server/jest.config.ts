@@ -5,6 +5,13 @@ const presetConfig = createDefaultEsmPreset();
 
 const config: Config = {
     ...presetConfig,
+    collectCoverage: true,
+    coverageDirectory: "coverage",
+    coveragePathIgnorePatterns: [
+        "jest.config.ts",
+        "server/index.ts",
+        "server/utils/config.ts"
+    ],
     // Hieman Jest kikkailua tässä. Eli jos on ESM käytössä, niin Node.js vaatii, että import poluissa käytetään .js tiedostopäätettä.
     // Jest ei kuitenkaan osaa suoraan yhdistää näitä .js viittauksia vastaaviin .ts tiedostoihin.
     // Joten tämä moduleNameMapper muuttaa import polut Jestille sopiviksi ajon aikana.

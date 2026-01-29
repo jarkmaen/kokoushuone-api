@@ -24,7 +24,8 @@
         "build": "tsc",
         "dev": "tsx --watch index.ts",
         "start": "node dist/index.js",
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
     },
     "type": "module",
     "version": "1.0.0"

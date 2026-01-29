@@ -1653,3 +1653,77 @@ Jos haluat, voin:
 2) Lähettää valmiin patch-diffin, jonka voit liittää itse.
 
 Haluatko että lisään tiedostot ja päivitykset nyt? ✅
+
+### 🧑 Minä:
+
+Nostetaan kattavuutta, eli lisätään vielä nämä testit:
+
+- Syötteen tyyppitarkistus (typeof)
+- Tyhjien merkkijonojen estäminen (trim())
+- Sekä yleinen 404 testi (unknownEndpoint)
+
+404 testi kannattaa varmaan laittaa omaan tiedostoonsa?
+
+### 🤖 Tekoäly (Copilot):
+
+Status: I'll search for the unknown endpoint middleware to see the expected error response so the new 404 test can assert accurately. I'll run a grep for 'unknownEndpoint' in the repository.
+
+Searched for text `unknownEndpoint`, 7 results
+
+Read [](file:///c%3A/Users/Jarkko/Documents/GitHub/kokoushuone-api/server/middlewares/errors.ts)
+
+Status: Löysin middleware-validoinnin virheilmoitukset ja käytän niiden täsmällisiä tekstejä testeissä. Lisään kaksi uutta testtiä reservations.test.ts-tiedostoon (tyyppitarkistus ja tyhjien merkkijonojen estäminen) ja uuden 404-testin omaan tiedostoonsa.
+
+Muokattavat testit (kopioi/liitä tai haluatko että lisään suoraan ja teen commitin?):  
+
+1) Lisää nämä testit reservations.test.ts -tiedoston POST-lohkoon (esim. POST /api/reservations -kuvauksen sisään):
+
+```ts
+test("hylkää ei-merkkijono-tyyppiset kentät (typeof)", async () => {
+    const res = await request(app).post("/api/reservations").send({
+        room: "A1",
+        startTime: 12345, // väärä tyyppi
+        endTime: "2030-01-01T12:30:00Z",
+        reservedBy: "Tester"
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe(
+        "ValidationError: Kaikki tiedot (room, startTime, endTime, reservedBy) on annettava merkkijonoina"
+    );
+});
+
+test("hylkää tyhjät merkkijonot (trim())", async () => {
+    const res = await request(app).post("/api/reservations").send({
+        room: "A1",
+        startTime: "2030-01-01T12:00:00Z",
+        endTime: "2030-01-01T12:30:00Z",
+        reservedBy: "" // tyhjä
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe(
+        "ValidationError: Kaikki tiedot on täytettävä"
+    );
+});
+```
+
+2) Luo uusi tiedosto `server/tests/unknown.test.ts` (oma testi 404 Unknown endpointille):
+
+```ts
+import request from "supertest";
+import app from "../app.js";
+
+describe("Unknown endpoint", () => {
+    test("palauttaa 404 ja selkeän virheilmoituksen", async () => {
+        const res = await request(app).get("/api/this-does-not-exist");
+        expect(res.status).toBe(404);
+        expect(res.body.error).toBe("Unknown endpoint");
+    });
+});
+```
+
+Ajettavuus:
+- Aja testit: cd server && npm test
+
+Haluatko, että lisään nämä tiedostot suoraan työtilaan ja teen commitin nyt? (Vastaa "Kyllä, tee se" tai "Haluan patchin".) ✅

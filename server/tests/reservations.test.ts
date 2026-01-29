@@ -197,6 +197,34 @@ describe("Reservations API", () => {
                 "ValidationError: Valitsemanne kokoushuone ei ole olemassa"
             );
         });
+
+        test("hylkää arvot, jotka eivät ole merkkijonoja", async () => {
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    startTime: 1234
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                "ValidationError: Kaikki tiedot (room, startTime, endTime, reservedBy) on annettava merkkijonoina"
+            );
+        });
+
+        test("hylkää tyhjät merkkijonot", async () => {
+            const res = await request(app).post("/api/reservations").send({
+                room: "A1",
+                startTime: "2030-01-01T12:00:00Z",
+                endTime: "2030-01-01T12:30:00Z",
+                reservedBy: " "
+            });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                "ValidationError: Kaikki tiedot on täytettävä"
+            );
+        });
     });
 
     describe("GET /api/reservations", () => {

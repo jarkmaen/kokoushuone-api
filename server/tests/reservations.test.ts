@@ -168,6 +168,21 @@ describe("Reservations API", () => {
 
             expect(res.status).toBe(201);
         });
+
+        test("sallii varaukset samaan aikaan eri huoneisiin", async () => {
+            // Varataan huone A1
+            await request(app).post("/api/reservations").send(valid);
+
+            // Varataan huone B1 samaan aikaan
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    room: "B1"
+                });
+
+            expect(res.status).toBe(201);
+        });
     });
 
     describe("GET /api/reservations", () => {

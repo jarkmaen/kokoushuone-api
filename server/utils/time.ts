@@ -4,6 +4,11 @@ import { OFFICE_CLOSE_HOUR, OFFICE_OPEN_HOUR, QUARTERS } from "../constants.js";
  * Muuttaa merkkijonon Date olioksi.
  */
 export function parseISO(dateStr: string): Date | null {
+    // Varmistetaan, että merkkijono päättyy Z kirjaimeen (UTC)
+    if (!dateStr.endsWith("Z")) {
+        return null;
+    }
+
     const date = new Date(dateStr);
 
     // Onko päivämäärä loogisesti validi?

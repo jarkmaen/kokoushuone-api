@@ -8,6 +8,23 @@ import {
 import { NextFunction, Request, Response } from "express";
 import { Room } from "../models/reservation.js";
 
+export const validateRoom = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    // Tarkistetaan, että valittu huone on järjestelmässä
+    const room = (req.body.room || req.params.room) as Room;
+
+    if (!room || !db.getRooms().includes(room)) {
+        return res.status(400).json({
+            error: "ValidationError: Valitsemanne kokoushuone ei ole olemassa"
+        });
+    }
+
+    return next();
+};
+
 export const validateReservation = (
     req: Request,
     res: Response,
@@ -39,24 +56,17 @@ export const validateReservation = (
         });
     }
 
-    // 3. Tarkistetaan, että valittu huone on järjestelmässä
-    if (!db.getRooms().includes(room as Room)) {
-        return res.status(400).json({
-            error: "ValidationError: Valitsemanne kokoushuone ei ole olemassa"
-        });
-    }
-
     const startDate = parseISO(startTime);
     const endDate = parseISO(endTime);
 
-    // 4. Onko käytetty oikeaa aikamuotoa?
+    // 3. Onko käytetty oikeaa aikamuotoa?
     if (!startDate || !endDate) {
         return res.status(400).json({
             error: "ValidationError: Virheellinen aikamuoto. Käytä ISO 8601 -standardia"
         });
     }
 
-    // 5. Varmistetaan, että käyvätkö valitut ajat järkeen
+    // 4. Varmistetaan, että käyvätkö valitut ajat järkeen
     const now = new Date();
 
     if (startDate.getTime() < now.getTime()) {
@@ -71,14 +81,14 @@ export const validateReservation = (
         });
     }
 
-    // 6. Päteekö 15 minuutin intervallisääntö?
+    // 5. Päteekö 15 minuutin intervallisääntö?
     if (!isQuarterHour(startDate) || !isQuarterHour(endDate)) {
         return res.status(400).json({
             error: "ValidationError: Aikojen on oltava 15 minuutin välein (:00, :15, :30, :45)"
         });
     }
 
-    // 7. Tarkistetaan, että varauksen kesto ei ole liian lyhyt tai pitkä (15min - 8h)
+    // 6. Tarkistetaan, että varauksen kesto ei ole liian lyhyt tai pitkä (15min - 8h)
     const minutes = minutesBetween(startDate, endDate);
 
     if (minutes < 15 || minutes > 480) {
@@ -87,14 +97,14 @@ export const validateReservation = (
         });
     }
 
-    // 8. Onko varaus tehty aukioloaikojen puitteissa?
+    // 7. Onko varaus tehty aukioloaikojen puitteissa?
     if (!inOfficeHours(startDate, endDate)) {
         return res.status(400).json({
             error: "ValidationError: Varaukset on tehtävä aukioloaikojen puitteissa (06:00-20:00 UTC)"
         });
     }
 
-    // 9. Varmistetaan, että onko huone vapaa valittuna aikana
+    // 8. Varmistetaan, että onko huone vapaa valittuna aikana
     if (!db.isRoomAvailable(room as Room, startDate, endDate)) {
         return res.status(400).json({
             error: "ValidationError: Kokoushuone on jo varattu valittuna aikana"

@@ -2,11 +2,14 @@ import { db } from "../database/inMemoryDB.js";
 import { Reservation, Room } from "../models/reservation.js";
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { validateReservation } from "../middlewares/reservations.js";
+import {
+    validateReservation,
+    validateRoom
+} from "../middlewares/reservations.js";
 
 const router = Router();
 
-router.post("/", validateReservation, (req, res) => {
+router.post("/", validateRoom, validateReservation, (req, res) => {
     const { endTime, reservedBy, room, startTime } = req.body;
 
     const resv: Reservation = {
@@ -29,10 +32,8 @@ router.delete("/:id", (req, res) => {
     return res.status(204).send();
 });
 
-router.get("/rooms/:room", (req, res) => {
+router.get("/rooms/:room", validateRoom, (req, res) => {
     const room = req.params.room as Room;
-    if (!db.getRooms().includes(room))
-        return res.status(400).json({ error: "invalid room" });
     const list = db.getReservationsByRoom(room);
     return res.json(list);
 });

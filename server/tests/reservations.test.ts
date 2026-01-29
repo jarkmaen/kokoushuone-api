@@ -183,6 +183,20 @@ describe("Reservations API", () => {
 
             expect(res.status).toBe(201);
         });
+
+        test("hylkää varauksen, jos huonetta ei ole olemassa", async () => {
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    room: "Z99"
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                "ValidationError: Valitsemanne kokoushuone ei ole olemassa"
+            );
+        });
     });
 
     describe("GET /api/reservations", () => {

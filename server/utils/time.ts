@@ -1,4 +1,4 @@
-export const QUARTERS = [0, 15, 30, 45];
+import { OFFICE_CLOSE_HOUR, OFFICE_OPEN_HOUR, QUARTERS } from "../constants.js";
 
 export function parseISO(dateStr: string): Date | null {
     const d = new Date(dateStr);
@@ -32,9 +32,9 @@ export function inOfficeHours(start: Date, end: Date) {
     const eH = end.getUTCHours();
     // start >=06:00 and end <=20:00 (end may be exactly 20:00)
     return (
-        sH >= 6 &&
-        (eH < 20 ||
-            (eH === 20 &&
+        sH >= OFFICE_OPEN_HOUR &&
+        (eH < OFFICE_CLOSE_HOUR ||
+            (eH === OFFICE_CLOSE_HOUR &&
                 end.getUTCMinutes() === 0 &&
                 end.getUTCSeconds() === 0))
     );

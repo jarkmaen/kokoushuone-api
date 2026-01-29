@@ -1,7 +1,7 @@
 import { Reservation, Room } from "../models/reservation.js";
+import { ROOMS } from "../constants.js";
 
 const data: Reservation[] = [];
-const ROOMS: Room[] = ["A1", "A2", "B1", "B2"];
 
 export const db = {
     addReservation(reservation: Reservation): void {

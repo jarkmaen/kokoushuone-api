@@ -5,6 +5,7 @@ import {
     minutesBetween,
     parseISO
 } from "../utils/time.js";
+import { MAX_DURATION_MINUTES, MIN_DURATION_MINUTES } from "../constants.js";
 import { NextFunction, Request, Response } from "express";
 import { Room } from "../models/reservation.js";
 
@@ -91,7 +92,7 @@ export const validateReservation = (
     // 6. Tarkistetaan, että varauksen kesto ei ole liian lyhyt tai pitkä (15min - 8h)
     const minutes = minutesBetween(startDate, endDate);
 
-    if (minutes < 15 || minutes > 480) {
+    if (minutes < MIN_DURATION_MINUTES || minutes > MAX_DURATION_MINUTES) {
         return res.status(400).json({
             error: "ValidationError: Varauksen keston täytyy olla vähintään 15 minuuttia, mutta se ei saa kestää yli 8 tuntia"
         });

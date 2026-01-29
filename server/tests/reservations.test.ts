@@ -156,6 +156,18 @@ describe("Reservations API", () => {
                 "ValidationError: Varaukset on tehtävä aukioloaikojen puitteissa (06:00-20:00 UTC)"
             );
         });
+
+        test("sallii täsmälleen 8 tunnin varauksen", async () => {
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    startTime: "2030-01-01T08:00:00Z",
+                    endTime: "2030-01-01T16:00:00Z"
+                });
+
+            expect(res.status).toBe(201);
+        });
     });
 
     describe("GET /api/reservations", () => {

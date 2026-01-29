@@ -125,6 +125,21 @@ describe("Reservations API", () => {
                 "ValidationError: Varaukset on tehtävä aukioloaikojen puitteissa (06:00-20:00 UTC)"
             );
         });
+
+        test("hylkää aikaleimat ilman Z päätettä", async () => {
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    startTime: "2030-01-01T12:00:00",
+                    endTime: "2030-01-01T12:30:00Z"
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                "ValidationError: Virheellinen aikamuoto. Käytä ISO 8601 -standardia"
+            );
+        });
     });
 
     describe("GET /api/reservations", () => {

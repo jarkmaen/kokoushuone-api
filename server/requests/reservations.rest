@@ -1,33 +1,19 @@
-### Luo varaus (onnistuu)
+# Näillä voi API kutsuja manuaalisesti testata jos tarpeen
+
 POST http://localhost:3000/api/reservations
 Content-Type: application/json
 
 {
     "room": "A1",
-    "startTime": "2027-01-28T09:00:00Z",
-    "endTime": "2027-01-28T09:30:00Z",
-    "reservedBy": "Testikäyttäjä"
+    "startTime": "2026-01-31T06:00:00Z",
+    "endTime": "2026-01-31T10:00:00Z",
+    "reservedBy": "Käyttäjä"
 }
 
 ###
 
-### Yritä luoda päällekkäinen varaus (epäonnistuu)
-POST http://localhost:3000/api/reservations
-Content-Type: application/json
-
-{
-    "room": "A1",
-    "startTime": "2027-01-28T09:15:00Z",
-    "endTime": "2027-01-28T09:45:00Z",
-    "reservedBy": "Päällekkäinen"
-}
-
-###
-
-### Listaa huoneen varaukset (A1)
 GET http://localhost:3000/api/reservations/rooms/A1
 
 ###
 
-### Poista varaus (korvaa {id} vastaavalla ID:llä)
-DELETE http://localhost:3000/api/reservations/{id}
+DELETE http://localhost:3000/api/reservations/id

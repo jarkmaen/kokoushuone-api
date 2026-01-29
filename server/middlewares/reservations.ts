@@ -94,7 +94,7 @@ export const validateReservation = (
 
     if (minutes < MIN_DURATION_MINUTES || minutes > MAX_DURATION_MINUTES) {
         return res.status(400).json({
-            error: "ValidationError: Varauksen keston täytyy olla vähintään 15 minuuttia, mutta se ei saa kestää yli 8 tuntia"
+            error: "ValidationError: Varauksen keston täytyy olla vähintään 15 minuuttia, eikä se saa ylittää 8 tuntia"
         });
     }
 

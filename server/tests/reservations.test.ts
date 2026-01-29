@@ -211,5 +211,12 @@ describe("Reservations API", () => {
             const check = await request(app).get("/api/reservations/rooms/A1");
             expect(check.body.length).toBe(0);
         });
+
+        test("palauttaa 404, jos yritetään poistaa olematonta varausta", async () => {
+            const res = await request(app).delete("/api/reservations/nonsense");
+
+            expect(res.status).toBe(404);
+            expect(res.body.error).toBe("not found");
+        });
     });
 });

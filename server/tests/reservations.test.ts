@@ -276,4 +276,13 @@ describe("Reservations API", () => {
             expect(res.body.error).toBe("not found");
         });
     });
+
+    describe("Tuntematon reititys", () => {
+        test("palauttaa 404, jos kutsutaan osoitetta, jota ei ole olemassa", async () => {
+            const res = await request(app).get("/api/nonsense");
+
+            expect(res.status).toBe(404);
+            expect(res.body.error).toBe("Unknown endpoint");
+        });
+    });
 });

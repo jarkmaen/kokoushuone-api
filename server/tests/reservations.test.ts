@@ -140,6 +140,22 @@ describe("Reservations API", () => {
                 "ValidationError: Virheellinen aikamuoto. Käytä ISO 8601 -standardia"
             );
         });
+
+        test("estää varaukset, jotka alkavat ja loppuvat eri päivinä", async () => {
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    startTime: "2030-01-01T23:00:00Z",
+                    endTime: "2030-01-02T01:00:00Z",
+                    reservedBy: "Overnight"
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                "ValidationError: Varaukset on tehtävä aukioloaikojen puitteissa (06:00-20:00 UTC)"
+            );
+        });
     });
 
     describe("GET /api/reservations", () => {

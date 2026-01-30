@@ -4,11 +4,11 @@ import { PORT } from "./utils/config.js";
 
 const start = () => {
     const server = app.listen(PORT, () => {
-        logger.info(`Server running on port ${PORT}`);
+        logger.info(`Palvelin on käytettävissä portissa ${PORT}`);
     });
 
     server.on("error", (error) => {
-        logger.error("Failed to start the server:", error);
+        logger.error("Tapahtui virhe palvelimen käynnistyksessä:", error);
         process.exit(1);
     });
 };

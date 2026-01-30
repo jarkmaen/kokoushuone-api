@@ -17,9 +17,9 @@ export const errorHandler = (
         return res.status(400).json({ error: error.message });
     }
 
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Palvelinvirhe" });
 };
 
 export const unknownEndpoint = (_req: Request, res: Response) => {
-    res.status(404).json({ error: "Unknown endpoint" });
+    res.status(404).json({ error: "Osoite on tuntematon" });
 };

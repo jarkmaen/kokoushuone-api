@@ -282,7 +282,7 @@ describe("Reservations API", () => {
             const res = await request(app).delete("/api/reservations/nonsense");
 
             expect(res.status).toBe(404);
-            expect(res.body.error).toBe("not found");
+            expect(res.body.error).toBe("Varausta ei löytynyt");
         });
     });
 
@@ -291,7 +291,7 @@ describe("Reservations API", () => {
             const res = await request(app).get("/api/nonsense");
 
             expect(res.status).toBe(404);
-            expect(res.body.error).toBe("Unknown endpoint");
+            expect(res.body.error).toBe("Osoite on tuntematon");
         });
     });
 });

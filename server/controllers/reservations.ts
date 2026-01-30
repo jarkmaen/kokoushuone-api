@@ -26,7 +26,7 @@ export const deleteReservation = (req: Request, res: Response) => {
     const deleted = db.deleteReservation(id);
 
     if (deleted == false) {
-        return res.status(404).json({ error: "not found" });
+        return res.status(404).json({ error: "Varausta ei löytynyt" });
     }
 
     return res.status(204).send();

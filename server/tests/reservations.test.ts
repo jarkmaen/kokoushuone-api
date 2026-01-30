@@ -1,6 +1,11 @@
 import app from "../app.js";
 import request from "supertest";
 import { db } from "../database/inMemoryDB.js";
+import {
+    MAX_RESERVED_BY_LENGTH,
+    MAX_ROOM_LENGTH,
+    MAX_TIME_LENGTH
+} from "../constants.js";
 
 beforeEach(() => {
     db.clear();
@@ -223,6 +228,51 @@ describe("Reservations API", () => {
             expect(res.status).toBe(400);
             expect(res.body.error).toBe(
                 "ValidationError: Kaikki tiedot on täytettävä"
+            );
+        });
+
+        test("hylkää liian pitkän varaajan nimen takia", async () => {
+            const longName = "N".repeat(MAX_RESERVED_BY_LENGTH + 1);
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    reservedBy: longName
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                `ValidationError: Varaajan nimen pituus ei saa ylittää ${MAX_RESERVED_BY_LENGTH} merkkiä`
+            );
+        });
+
+        test("hylkää liian pitkän aikaleiman takia", async () => {
+            const longTime = "Z".repeat(MAX_TIME_LENGTH + 1);
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    startTime: longTime
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                `ValidationError: Aikaleimojen pituus ei saa ylittää ${MAX_TIME_LENGTH} merkkiä`
+            );
+        });
+
+        test("hylkää liian pitkän huoneen nimen takia", async () => {
+            const longRoom = "R".repeat(MAX_ROOM_LENGTH + 1);
+            const res = await request(app)
+                .post("/api/reservations")
+                .send({
+                    ...valid,
+                    room: longRoom
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                `ValidationError: Huoneen nimen pituus ei saa ylittää ${MAX_ROOM_LENGTH} merkkiä`
             );
         });
     });

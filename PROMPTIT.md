@@ -1804,3 +1804,74 @@ export const db = {
 ---
 
 ✅ Haluatko, että lisään nämä kommentit suoraan tiedostoon ja teen commitin? Vastaa "Kyllä, tee" tai "Haluan patchin", niin toimitan diffin.
+
+### 🧑 Minä:
+
+Lisää vielä varauksen validointiin enimmäispituudet merkkijonoille (endTime, reservedBy, room, startTime).
+
+### 🤖 Tekoäly (Copilot):
+
+Status: Haen constants.ts varmistaakseni, sisältääkö se jo merkkijonopituus-konstantit; seuraavaksi luen tiedoston.
+
+Read [](file:///c%3A/Users/Jarkko/Documents/GitHub/kokoushuone-api/server/constants.ts)
+
+Status: Löysin constants.ts-tiedoston ja lisään siihen uudet maksimipituusvakioiden sekä päivitän `validateReservation`-middlewareen pituustarkistukset. Seuraavaksi näet täsmälliset koodimuutokset; hyväksytkö, että lisään ne työtilaan ja teen commitin? ✅
+
+---
+
+## Mitä lisätään 🔧
+
+### 1) Päivitys: constants.ts — lisää vakioita
+Lisää nämä rivit tiedoston loppuun:
+
+```ts
+// Maksimipituudet (merkkeinä)
+export const MAX_TIME_LENGTH = 30;         // esim. ISO-aikaleima (riittää hyvin)
+export const MAX_RESERVED_BY_LENGTH = 100; // varaajan nimen maksimi
+export const MAX_ROOM_LENGTH = 10;         // huonekenttä on lyhyt (esim. "A1")
+```
+
+---
+
+### 2) Päivitys: reservations.ts — pituustarkistukset
+Lisää importit (jos ei jo ole):
+```ts
+import { MAX_DURATION_MINUTES, MIN_DURATION_MINUTES, MAX_TIME_LENGTH, MAX_RESERVED_BY_LENGTH, MAX_ROOM_LENGTH } from "../constants.js";
+```
+
+Lisää validointiin (esim. heti tyhjien merkkijonojen tarkistuksen jälkeen), käytä trimattuja arvoja:
+```ts
+// Trimmaa kentät ja käytä niitä jatkossa
+const tRoom = room.trim();
+const tStart = startTime.trim();
+const tEnd = endTime.trim();
+const tReservedBy = reservedBy.trim();
+
+// Merkkijonojen enimmäispituudet
+if (tStart.length > MAX_TIME_LENGTH || tEnd.length > MAX_TIME_LENGTH) {
+    return res.status(400).json({ error: `ValidationError: Aikaleimojen pituus ei saa ylittää ${MAX_TIME_LENGTH} merkkiä` });
+}
+
+if (tReservedBy.length > MAX_RESERVED_BY_LENGTH) {
+    return res.status(400).json({ error: `ValidationError: Varaajan nimen pituus ei saa ylittää ${MAX_RESERVED_BY_LENGTH} merkkiä` });
+}
+
+if (tRoom.length > MAX_ROOM_LENGTH) {
+    return res.status(400).json({ error: `ValidationError: Huonekentän pituus ei saa ylittää ${MAX_ROOM_LENGTH} merkkiä` });
+}
+```
+
+Muista käyttää trimattuja arvoja (`tStart`, `tEnd`, `tReservedBy`, `tRoom`) jatkossa (esim. kun kutsut `db.isRoomAvailable(...)`). Voin tehdä pienen refaktorin, joka korvaa alkuperäiset `room/startTime/...` käyttämään trimattuja arvoja reitin loppupuolella.
+
+---
+
+## Testit (suositus) ✅
+Ehdotan lisättäväksi yksinkertaiset testit, jotka varmistavat:
+- liian pitkä `reservedBy` palauttaa 400 ja oikean virheilmoituksen
+- liian pitkä `startTime`/`endTime` palauttaa 400
+
+Lisään nämä testit mielelläni samaan reservations.test.ts-tiedostoon, jos haluat.
+
+---
+
+Haluatko, että teen nämä muutokset ja teen commitin nyt? (Vastaa "Kyllä, tee se" tai pyydä patch-diffiä kirjoitettavaksi itse.)

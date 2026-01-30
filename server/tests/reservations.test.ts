@@ -253,6 +253,15 @@ describe("Reservations API", () => {
             expect(Array.isArray(res.body)).toBe(true);
             expect(res.body.length).toBe(2);
         });
+
+        test("ei listaa mitään, jos huonetta ei ole olemassa", async () => {
+            const res = await request(app).get("/api/reservations/rooms/Z99");
+
+            expect(res.status).toBe(400);
+            expect(res.body.error).toBe(
+                "ValidationError: Valitsemanne kokoushuone ei ole olemassa"
+            );
+        });
     });
 
     describe("DELETE /api/reservations", () => {

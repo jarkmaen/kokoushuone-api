@@ -14,9 +14,14 @@ export const db = {
 
     /** Poistaa varauksen ID:n perusteella. Palauttaa true, jos poisto onnistui */
     deleteReservation(id: string): boolean {
-        const idx = data.findIndex((r) => r.id === id);
-        if (idx === -1) return false;
-        data.splice(idx, 1);
+        const index = data.findIndex((reservation) => reservation.id === id);
+
+        if (index === -1) {
+            return false;
+        }
+
+        data.splice(index, 1);
+
         return true;
     },
 
@@ -28,12 +33,13 @@ export const db = {
     /** Palauttaa tietyn huoneen varaukset aikajärjestyksessä (alkamisajan mukaan) */
     getReservationsByRoom(room: Room): Reservation[] {
         return data
-            .filter((r) => r.room === room)
-            .sort(
-                (a, b) =>
-                    new Date(a.startTime).getTime() -
-                    new Date(b.startTime).getTime()
-            );
+            .filter((reservation) => reservation.room === room)
+            .sort((a, b) => {
+                const timeA = new Date(a.startTime).getTime();
+                const timeB = new Date(b.startTime).getTime();
+
+                return timeA - timeB;
+            });
     },
 
     /** Palauttaa listan kaikista käytettävissä olevista huoneista */
@@ -46,12 +52,21 @@ export const db = {
      * Palauttaa true jos huone vapaa (ei päällekkäisiä varauksia)
      */
     isRoomAvailable(room: Room, start: Date, end: Date): boolean {
-        return !data.some(
-            (r) =>
-                r.room === room &&
-                new Date(r.startTime) < end &&
-                new Date(r.endTime) > start
-        );
+        const hasOverlap = data.some((reservation) => {
+            if (reservation.room !== room) {
+                return false;
+            }
+
+            const existingStart = new Date(reservation.startTime);
+            const existingEnd = new Date(reservation.endTime);
+
+            const startsBeforeNewEnds = existingStart < end;
+            const endsAfterNewStarts = existingEnd > start;
+
+            return startsBeforeNewEnds && endsAfterNewStarts;
+        });
+
+        return !hasOverlap;
     },
 
     /** Tyhjentää kaikki varaukset (tarkoitettu testeille) */

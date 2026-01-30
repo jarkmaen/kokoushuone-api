@@ -1,7 +1,13 @@
-export const error = (...params: unknown[]) => {
+/**
+ * Tulostaa virheilmoitukset konsoliin.
+ */
+export function error(...params: unknown[]): void {
     console.error(...params);
-};
+}
 
-export const info = (...params: unknown[]) => {
+/**
+ * Tulostaa yleiset infoviestit konsoliin.
+ */
+export function info(...params: unknown[]): void {
     console.log(...params);
-};
+}

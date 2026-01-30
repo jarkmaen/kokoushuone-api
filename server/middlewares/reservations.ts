@@ -9,6 +9,9 @@ import { MAX_DURATION_MINUTES, MIN_DURATION_MINUTES } from "../constants.js";
 import { NextFunction, Request, Response } from "express";
 import { Room } from "../models/reservation.js";
 
+/**
+ * Middleware: Tarkistaa löytyykö pyynnössä mainittu huone järjestelmästä.
+ */
 export const validateRoom = (
     req: Request,
     res: Response,
@@ -26,6 +29,9 @@ export const validateRoom = (
     return next();
 };
 
+/**
+ * Middleware: Suorittaa kattavat validoinnit varauksen tiedoille ja liiketoimintasäännöille.
+ */
 export const validateReservation = (
     req: Request,
     res: Response,

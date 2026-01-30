@@ -1727,3 +1727,80 @@ Ajettavuus:
 - Aja testit: cd server && npm test
 
 Haluatko, että lisään nämä tiedostot suoraan työtilaan ja teen commitin nyt? (Vastaa "Kyllä, tee se" tai "Haluan patchin".) ✅
+
+### 🧑 Minä:
+
+Lisää simppelit kommentit inMemoryDB.ts tiedostoon (suomeksi).
+
+### 🤖 Tekoäly (Copilot):
+
+Status: Löysin inMemoryDB.ts ja valmistan siihen suomenkieliset kommentit — näet ehdotetun tiedoston sisällön alla. Seuraavaksi voin lisätä nämä kommentit tiedostoon puolestasi, jos haluat (teen commitin). ✅
+
+## Muutosehdotus ✍️
+
+Lisää seuraavat simppelit suomenkieliset kommentit inMemoryDB.ts-tiedostoon:
+
+```ts
+import { Reservation, Room } from "../models/reservation.js";
+import { ROOMS } from "../constants.js";
+
+// Muistinvarainen "tietokanta" varauksille.
+// Huom: tämä on tarkoitettu testausta / demo-käyttöä varten — ei tuotantoon.
+const data: Reservation[] = [];
+
+export const db = {
+    // Lisää varaus muistiin
+    addReservation(reservation: Reservation): void {
+        data.push(reservation);
+    },
+
+    // Tyhjennä kaikki varaukset (apuna testeissä)
+    clear(): void {
+        data.length = 0;
+    },
+
+    // Poista varaus id:n perusteella. Palauttaa true jos poistettiin, muuten false.
+    deleteReservation(id: string): boolean {
+        const idx = data.findIndex((r) => r.id === id);
+        if (idx === -1) return false;
+        data.splice(idx, 1);
+        return true;
+    },
+
+    // Palauttaa kopion kaikista varauksista
+    getAllReservations(): Reservation[] {
+        return [...data];
+    },
+
+    // Palauttaa tietyn huoneen varaukset aikajärjestyksessä (alkamisajan mukaan)
+    getReservationsByRoom(room: Room): Reservation[] {
+        return data
+            .filter((r) => r.room === room)
+            .sort(
+                (a, b) =>
+                    new Date(a.startTime).getTime() -
+                    new Date(b.startTime).getTime()
+            );
+    },
+
+    // Palauttaa järjestelmän tuntemat huoneet (kopio)
+    getRooms(): Room[] {
+        return [...ROOMS];
+    },
+
+    // Tarkistaa, onko huone vapaa annetulla aikavälillä.
+    // Palauttaa true jos huone vapaa (ei päällekkäisiä varauksia).
+    isRoomAvailable(room: Room, start: Date, end: Date): boolean {
+        return !data.some(
+            (r) =>
+                r.room === room &&
+                new Date(r.startTime) < end &&
+                new Date(r.endTime) > start
+        );
+    }
+};
+```
+
+---
+
+✅ Haluatko, että lisään nämä kommentit suoraan tiedostoon ja teen commitin? Vastaa "Kyllä, tee" tai "Haluan patchin", niin toimitan diffin.

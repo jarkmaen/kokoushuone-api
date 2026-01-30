@@ -1,6 +1,9 @@
 import * as logger from "../utils/logger.js";
 import { NextFunction, Request, Response } from "express";
 
+/**
+ * Middleware: Kirjaa saapuvien HTTP-pyyntöjen perustiedot konsoliin.
+ */
 export const httpLogger = (
     req: Request,
     _res: Response,

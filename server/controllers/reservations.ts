@@ -3,6 +3,9 @@ import { Request, Response } from "express";
 import { Reservation, Room } from "../models/reservation.js";
 import { v4 as uuidv4 } from "uuid";
 
+/**
+ * Luo uuden varauksen.
+ */
 export const createReservation = (req: Request, res: Response) => {
     const { endTime, reservedBy, room, startTime } = req.body;
 
@@ -20,6 +23,9 @@ export const createReservation = (req: Request, res: Response) => {
     return res.status(201).json(reservation);
 };
 
+/**
+ * Poistaa varauksen ID:n perusteella.
+ */
 export const deleteReservation = (req: Request, res: Response) => {
     const id = req.params.id;
 
@@ -32,6 +38,9 @@ export const deleteReservation = (req: Request, res: Response) => {
     return res.status(204).send();
 };
 
+/**
+ * Hakee kaikki tietyn huoneen varaukset.
+ */
 export const getRoomReservations = (req: Request, res: Response) => {
     const room = req.params.room as Room;
 

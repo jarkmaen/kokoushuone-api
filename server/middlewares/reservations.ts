@@ -23,9 +23,16 @@ export const validateRoom = (
     res: Response,
     next: NextFunction
 ) => {
-    // Tarkistetaan, että valittu huone on järjestelmässä
     const room = (req.body.room || req.params.room) as Room;
 
+    // 1. Tarkistetaan, että merkkijono ei ylitä enimmäispituutta
+    if (room.length > MAX_ROOM_LENGTH) {
+        return res.status(400).json({
+            error: `ValidationError: Huoneen nimen pituus ei saa ylittää ${MAX_ROOM_LENGTH} merkkiä`
+        });
+    }
+
+    // 2. Tarkistetaan, että valittu huone on järjestelmässä
     if (!room || !db.getRooms().includes(room)) {
         return res.status(400).json({
             error: "ValidationError: Valitsemanne kokoushuone ei ole olemassa"
@@ -69,7 +76,7 @@ export const validateReservation = (
         });
     }
 
-    // 3. Tarkistetaan, että merkkijonot eivät ylitä määritettyjä enimmäispituuksia
+    // 3. Tarkistetaan, että merkkijonot (endTime, reservedBy, startTime) eivät ylitä määritettyjä enimmäispituuksia
     if (
         startTime.length > MAX_TIME_LENGTH ||
         endTime.length > MAX_TIME_LENGTH
@@ -82,12 +89,6 @@ export const validateReservation = (
     if (reservedBy.length > MAX_RESERVED_BY_LENGTH) {
         return res.status(400).json({
             error: `ValidationError: Varaajan nimen pituus ei saa ylittää ${MAX_RESERVED_BY_LENGTH} merkkiä`
-        });
-    }
-
-    if (room.length > MAX_ROOM_LENGTH) {
-        return res.status(400).json({
-            error: `ValidationError: Huonekentän pituus ei saa ylittää ${MAX_ROOM_LENGTH} merkkiä`
         });
     }
 

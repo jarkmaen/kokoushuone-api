@@ -2028,3 +2028,65 @@ Poista alkuperäinen 404-testi reservations.test.ts-tiedostosta, jos haluat väl
 ---
 
 Haluatko, että lisään ja committaan nämä muutokset (päivitän middleware-tiedoston ja testit, ja teen commitin)? Vastaa "Kyllä, tee se" niin suoritan muutokset ja teen commitin.
+
+### 🧑 Minä:
+
+Otetaan GitHub Actions käyttöön. Haluan että testit ajetaan jokaisen pushin yhteydessä master branchiin.
+
+### 🤖 Tekoäly (Copilot):
+
+Status: Tarkistin projektin testiskriptin ja konfiguraation — laadin GitHub Actions -workflown, joka ajaa testit jokaisesta pushista `master`-haarassa ja tallentaa kattavuusraportin artefaktiksi. Seuraavaksi näet valmis workflow-tiedoston, jonka voit lisätä repositorioon. 🚀
+
+## ✅ Ehdotettu workflow (lisää tiedostoon `.github/workflows/ci.yml`) 🔧
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches:
+      - master   # Muuta 'main' jos repo käyttää main-haaraa
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Run tests
+        working-directory: server
+        run: npm test
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: server/coverage
+```
+
+---
+
+## Huomioita & vinkkejä 💡
+- Workflow olettaa, että testit ajetaan server-kansiossa (`working-directory: server`) ja että package.json sisältää `test`-skriptin (kuten `node --experimental-vm-modules node_modules/jest/bin/jest.js`), joka toimii ESM + ts-jest -kokoonpanon kanssa.  
+- Jos reposi käyttää `main`-haaraa, korvaa `master` -> `main`.  
+- Coverage-raportti lähetetään artefaktina — voit ladata sen Actions-runin sivulta.  
+- Voidaan lisätä matrixiin useampia Node-versioita (esim. [18.x, 20.x]) jos haluat testata eri versioilla.
+
+---
+
+✨ Haluatko, että lisään tämän workflow-tiedoston puolestasi työtilaan ja teen commitin, vai haluat mieluummin patch-diffin jotta voit lisätä sen itse?

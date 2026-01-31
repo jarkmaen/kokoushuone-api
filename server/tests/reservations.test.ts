@@ -142,7 +142,7 @@ describe("Reservations API", () => {
 
             expect(res.status).toBe(400);
             expect(res.body.error).toBe(
-                "ValidationError: Virheellinen aikamuoto. Käytä ISO 8601 -standardia"
+                "ValidationError: Virheellinen aikaformaatti. Käytä ISO 8601 -standardia UTC-ajassa (esim. 2026-01-31T12:00:00Z)"
             );
         });
 

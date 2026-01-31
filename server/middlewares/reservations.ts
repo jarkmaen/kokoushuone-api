@@ -92,13 +92,13 @@ export const validateReservation = (
         });
     }
 
-    // 4. Onko käytetty oikeaa aikamuotoa?
+    // 4. Onko käytetty oikeaa aikaformaattia?
     const startDate = parseISO(startTime);
     const endDate = parseISO(endTime);
 
     if (!startDate || !endDate) {
         return res.status(400).json({
-            error: "ValidationError: Virheellinen aikamuoto. Käytä ISO 8601 -standardia"
+            error: "ValidationError: Virheellinen aikaformaatti. Käytä ISO 8601 -standardia UTC-ajassa (esim. 2026-01-31T12:00:00Z)"
         });
     }
 

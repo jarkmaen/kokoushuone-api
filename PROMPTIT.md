@@ -1,5 +1,7 @@
 # PROMPTIT
 
+Käytössäni oli GitHub Copilot (malli: Raptor mini). Valitsin Copilotin, sillä se oli jo entuudestaan tuttu itselleni. Käytin Ask-tilaa Agent-tilan sijaan, koska silloin keskusteluhistorian sai helpommin kopioitua suoraan tähän raporttiin. Keskustelu alkaa tästä eteenpäin:
+
 ### 🧑 Minä:
 
 Olet junior-tason ohjelmistokehittäjä. Tehtävänäsi on toteuttaa yksinkertainen kokoushuoneiden varausrajapinta. Palvelun tulee tarjota käyttäjille seuraavat toiminnot:
